@@ -359,58 +359,44 @@ function showSummary() {
   hideAllScreens();
   document.getElementById('screen-summary').classList.add('active');
 
-  let totalScore = 0, count = 0;
   const container = document.getElementById('summary-content');
   container.innerHTML = '';
 
   const headerInfo = document.createElement('div');
   headerInfo.className = 'summary-header-info';
+  headerInfo.style.marginBottom = '16px';
+  headerInfo.style.padding = '20px';
   headerInfo.innerHTML = `
-    <h2><i class="ph-fill ph-airplane-tilt" style="color:var(--jeju-orange)"></i> 대상: ${state.traineeName} 승무원</h2>
-    <p>훈련 날짜: ${state.date} &nbsp;|&nbsp; 평가자: ${state.evaluatorName}</p>
-    <span class="fb-badge ${fbReady ? '' : 'offline'}">${fbReady ? '🔥 Firestore 연동됨' : '📴 오프라인 모드'}</span>
-    <div class="avg-score-wrap">
-      <span class="avg-score-label">평균 점수:</span>
-      <span class="avg-score-val" id="avg-score-val">집계 중...</span>
-    </div>
+    <h2 style="font-size: 18px;"><i class="ph-fill ph-airplane-tilt" style="color:var(--jeju-orange)"></i> 대상: ${state.traineeName}</h2>
+    <p style="margin-bottom: 0;">평가자: ${state.evaluatorName} | ${state.date}</p>
   `;
   container.appendChild(headerInfo);
 
+  const listCard = document.createElement('div');
+  listCard.className = 'summary-card';
+  listCard.style.padding = '8px 0';
+  
+  let listHtml = '<div style="display: flex; flex-direction: column;">';
+  
   PHASES.forEach(phase => {
     const ev = state.evaluations[phase.id];
-    const card = document.createElement('div');
-    card.className = 'summary-card';
-    card.innerHTML = `
-      <div class="summary-card-header">
-        <span class="phase-number">${phase.id}</span>
-        <span style="font-weight:700;font-size:15px;">${phase.title}</span>
-      </div>
-      <div class="summary-card-body">
-        ${ev
-          ? `<div class="summary-score">
-               <span class="summary-emoji">${EMOJI_MAP[ev.score]}</span>
-               <div>
-                 <div class="summary-score-num">${ev.score} / 5</div>
-                 <div class="summary-score-label">${SCORE_LABEL[ev.score]}</div>
-               </div>
-             </div>
-             ${ev.comment ? `<p class="summary-comment">"${ev.comment}"</p>` : ''}`
-          : `<p style="color:#9CA3AF;font-size:14px;">⚠️ 아직 평가되지 않았습니다</p>`
-        }
+    listHtml += `
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; border-bottom: 1px solid var(--border);">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="font-size: 13px; font-weight: 700; color: white; background: var(--jeju-orange); width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center;">${phase.id}</span>
+          <span style="font-size: 14px; font-weight: 600; color: var(--text-primary);">${phase.title}</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 22px; display: flex;">${ev ? EMOJI_MAP[ev.score] : '<i class="ph ph-minus" style="color:var(--text-secondary)"></i>'}</span>
+          <span style="font-size: 13px; font-weight: 700; color: var(--jeju-orange); min-width: 45px; text-align: right;">${ev ? SCORE_LABEL[ev.score] : '미평가'}</span>
+        </div>
       </div>
     `;
-    container.appendChild(card);
-    if (ev) { totalScore += ev.score; count++; }
   });
-
-  const avgEl = document.getElementById('avg-score-val');
-  if (count > 0) {
-    const avg      = (totalScore / count).toFixed(1);
-    const avgEmoji = avg >= 4.5 ? '<i class="ph-duotone ph-star" style="color: #06B6D4;"></i>' : avg >= 3.5 ? '<i class="ph-duotone ph-smiley" style="color: #84CC16;"></i>' : avg >= 2.5 ? '<i class="ph-duotone ph-smiley-meh" style="color: #EAB308;"></i>' : avg >= 1.5 ? '<i class="ph-duotone ph-smiley-sad" style="color: #F97316;"></i>' : '<i class="ph-duotone ph-smiley-angry" style="color: #EF4444;"></i>';
-    avgEl.textContent = `${avgEmoji} ${avg} / 5 (${count}/${PHASES.length}개 항목 평가)`;
-  } else {
-    avgEl.textContent = '평가 항목 없음';
-  }
+  
+  listHtml += '</div>';
+  listCard.innerHTML = listHtml;
+  container.appendChild(listCard);
 }
 
 function backToMain() {
