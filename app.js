@@ -330,23 +330,26 @@ async function saveEval() {
   // 로컬 캐시
   state.evaluations[phaseId] = record;
 
-  // Firestore 저장
-  await upsertSessionMeta();
-  await savePhaseToFirestore(phaseId, record);
+  // 비동기 저장 처리 (UI를 멈추지 않음)
+  upsertSessionMeta();
+  savePhaseToFirestore(phaseId, record);
 
   markPillDone(state.currentPhase);
 
   const toast = document.getElementById('save-toast');
-  toast.textContent = fbReady ? '✅ Firestore에 저장되었습니다!' : '✅ 로컬에 저장되었습니다 (오프라인)';
+  toast.textContent = fbReady ? '✅ 저장되었습니다!' : '✅ 오프라인 저장됨';
   toast.style.display = 'block';
   
   setTimeout(() => { 
     toast.style.display = 'none'; 
-    // Auto advance after saving
+    // 저장 후 바로 다음 단계로
     if (state.currentPhase < PHASES.length - 1) {
       changePhase(1);
+    } else {
+      alert('모든 훈련 평가가 완료되었습니다!');
+      showSummary();
     }
-  }, 1000);
+  }, 600); // 0.6초 뒤 빠른 전환
 }
 
 // ============================================================
