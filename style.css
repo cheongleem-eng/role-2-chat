@@ -345,6 +345,7 @@ body {
   line-height: 1.6;
   color: var(--text-primary);
   font-weight: 500;
+  white-space: pre-wrap;
 }
 
 /* ---- Question box ---- */
@@ -371,6 +372,7 @@ body {
   line-height: 1.6;
   color: var(--text-primary);
   font-weight: 600;
+  white-space: pre-wrap;
 }
 
 /* ---- Evaluation Section ---- */
