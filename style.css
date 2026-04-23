@@ -397,9 +397,9 @@ body {
 }
 
 .eval-criteria li {
-  font-size: 15px;
-  line-height: 1.6;
-  padding: 12px 0;
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 10px 0;
   border-bottom: 1px solid var(--border);
   color: var(--text-secondary);
   display: flex;
@@ -409,8 +409,8 @@ body {
 
 .eval-criteria li i {
   color: var(--success);
-  font-size: 18px;
-  margin-top: 3px;
+  font-size: 16px;
+  margin-top: 2px;
   flex-shrink: 0;
 }
 
@@ -459,17 +459,31 @@ body {
 
 .emoji-btn:hover {
   transform: translateY(-4px);
-  border-color: var(--jeju-orange-light);
-  color: var(--jeju-orange-light);
 }
 
 .emoji-btn.selected {
-  border-color: var(--jeju-orange);
-  background: var(--jeju-orange);
-  color: white;
   transform: translateY(-4px) scale(1.05);
-  box-shadow: 0 8px 20px rgba(255, 80, 0, 0.3);
 }
+
+/* Level 1: Very Dissatisfied (Red) */
+.emoji-btn.level-1:hover { border-color: #EF4444; color: #EF4444; background: #FEF2F2; }
+.emoji-btn.level-1.selected { border-color: #EF4444; background: #EF4444; color: white; box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3); }
+
+/* Level 2: Dissatisfied (Orange) */
+.emoji-btn.level-2:hover { border-color: #F97316; color: #F97316; background: #FFF7ED; }
+.emoji-btn.level-2.selected { border-color: #F97316; background: #F97316; color: white; box-shadow: 0 8px 20px rgba(249, 115, 22, 0.3); }
+
+/* Level 3: Neutral (Yellow) */
+.emoji-btn.level-3:hover { border-color: #EAB308; color: #EAB308; background: #FEFCE8; }
+.emoji-btn.level-3.selected { border-color: #EAB308; background: #EAB308; color: white; box-shadow: 0 8px 20px rgba(234, 179, 8, 0.3); }
+
+/* Level 4: Satisfied (Light Green) */
+.emoji-btn.level-4:hover { border-color: #84CC16; color: #84CC16; background: #F7FEE7; }
+.emoji-btn.level-4.selected { border-color: #84CC16; background: #84CC16; color: white; box-shadow: 0 8px 20px rgba(132, 204, 22, 0.3); }
+
+/* Level 5: Very Satisfied (Teal/Blue) */
+.emoji-btn.level-5:hover { border-color: #06B6D4; color: #06B6D4; background: #ECFEFF; }
+.emoji-btn.level-5.selected { border-color: #06B6D4; background: #06B6D4; color: white; box-shadow: 0 8px 20px rgba(6, 182, 212, 0.3); }
 
 .rating-labels-row {
   display: flex;

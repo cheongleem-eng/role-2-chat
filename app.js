@@ -104,11 +104,11 @@ const PHASES = [
 ];
 
 const EMOJI_MAP   = { 
-  1: '<i class="ph-fill ph-smiley-sad"></i>', 
-  2: '<i class="ph-fill ph-smiley-meh"></i>', 
-  3: '<i class="ph-fill ph-smiley-blank"></i>', 
-  4: '<i class="ph-fill ph-smiley"></i>', 
-  5: '<i class="ph-fill ph-smiley-wink"></i>' 
+  1: '<i class="ph-duotone ph-smiley-angry" style="color: #EF4444;"></i>', 
+  2: '<i class="ph-duotone ph-smiley-sad" style="color: #F97316;"></i>', 
+  3: '<i class="ph-duotone ph-smiley-meh" style="color: #EAB308;"></i>', 
+  4: '<i class="ph-duotone ph-smiley" style="color: #84CC16;"></i>', 
+  5: '<i class="ph-duotone ph-star" style="color: #06B6D4;"></i>' 
 };
 const SCORE_LABEL = { 1: '매우 불만족', 2: '불만족', 3: '보통', 4: '만족', 5: '매우 만족' };
 
@@ -406,7 +406,7 @@ function showSummary() {
   const avgEl = document.getElementById('avg-score-val');
   if (count > 0) {
     const avg      = (totalScore / count).toFixed(1);
-    const avgEmoji = avg >= 4.5 ? '<i class="ph-fill ph-smiley-wink"></i>' : avg >= 3.5 ? '<i class="ph-fill ph-smiley"></i>' : avg >= 2.5 ? '<i class="ph-fill ph-smiley-blank"></i>' : avg >= 1.5 ? '<i class="ph-fill ph-smiley-meh"></i>' : '<i class="ph-fill ph-smiley-sad"></i>';
+    const avgEmoji = avg >= 4.5 ? '<i class="ph-duotone ph-star" style="color: #06B6D4;"></i>' : avg >= 3.5 ? '<i class="ph-duotone ph-smiley" style="color: #84CC16;"></i>' : avg >= 2.5 ? '<i class="ph-duotone ph-smiley-meh" style="color: #EAB308;"></i>' : avg >= 1.5 ? '<i class="ph-duotone ph-smiley-sad" style="color: #F97316;"></i>' : '<i class="ph-duotone ph-smiley-angry" style="color: #EF4444;"></i>';
     avgEl.textContent = `${avgEmoji} ${avg} / 5 (${count}/${PHASES.length}개 항목 평가)`;
   } else {
     avgEl.textContent = '평가 항목 없음';
