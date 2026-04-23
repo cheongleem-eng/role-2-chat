@@ -288,7 +288,7 @@ function renderPhase(index) {
   document.getElementById('btn-prev').disabled = index === 0;
   document.getElementById('btn-next').disabled = index === PHASES.length - 1;
   updatePhaseNavActive(index);
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  window.scrollTo(0, 0);
 }
 
 function changePhase(delta, direct) {
@@ -631,7 +631,7 @@ function showEvalSection() {
   if(roleplaySec && evalSec) {
     roleplaySec.style.display = 'none';
     evalSec.style.display = 'block';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo(0, 0);
   }
 }
 
