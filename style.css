@@ -45,10 +45,10 @@ body {
    LOGIN SCREEN (SKY BACKGROUND & LARGE FRAME)
    ============================================================ */
 #screen-login {
-  background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), 
+  background-image: linear-gradient(rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.15)), 
                     url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?q=80&w=2074&auto=format&fit=crop');
   background-size: cover;
-  background-position: center;
+  background-position: 60% center; /* 모바일에서 비행기가 더 잘 보이도록 조정 */
   justify-content: center;
   align-items: center;
   padding: 0;
@@ -60,142 +60,146 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: 20px;
 }
 
 .login-card {
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
-  border: 3px solid rgba(255, 255, 255, 0.3); 
-  border-radius: 30px; 
-  padding: 30px 24px;
-  width: 85%;
-  max-width: 320px;
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 2px solid rgba(255, 255, 255, 0.25); 
+  border-radius: 24px; 
+  padding: 30px 20px;
+  width: 90%;
+  max-width: 300px; /* 더 아담하게 조정 */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   text-align: center;
 }
 
-.logo-wrap { margin-bottom: 24px; }
+.logo-wrap { margin-bottom: 20px; }
 .logo-img { 
-  max-width: 110px; 
-  margin-bottom: 6px;
+  max-width: 100px; 
+  margin-bottom: 4px;
 }
 .logo-sub {
   color: white;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 1.2px;
+  letter-spacing: 1px;
 }
 
-.form-group { margin-bottom: 18px; text-align: left; }
+.form-group { margin-bottom: 14px; text-align: left; }
 .form-group label { 
-  font-size: 12px; 
+  font-size: 11px; 
   font-weight: 700; 
   color: white; 
-  margin-bottom: 6px; 
+  margin-bottom: 5px; 
   display: block;
-  padding-left: 4px;
+  padding-left: 2px;
 }
 
 .form-group input { 
   width: 100%; 
-  height: 34px; /* 훨씬 날렵한 높이 */
-  padding: 0 12px; 
-  border: 1.2px solid rgba(255, 255, 255, 0.2); 
-  border-radius: 8px; /* 높이에 맞춰 곡률 축소 */
+  height: 32px; 
+  padding: 0 10px; 
+  border: 1px solid rgba(255, 255, 255, 0.2); 
+  border-radius: 6px; 
   font-size: 13px; 
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95);
   color: var(--jeju-navy);
   transition: all 0.3s;
   display: block;
 }
 
-/* 날짜 입력창 특수 스타일 보정 */
-.form-group input[type="date"] {
-  font-family: inherit;
-  -webkit-appearance: none;
-  appearance: none;
-}
-
 .main-start-btn { 
   width: 100%;
-  height: 38px; /* 날렵한 버튼 높이 */
+  height: 36px; 
   padding: 0; 
   background: var(--jeju-orange); 
   color: white; 
   border: none; 
-  border-radius: 8px; 
+  border-radius: 6px; 
   font-size: 14px; 
   font-weight: 800; 
   box-shadow: 0 4px 8px rgba(255, 80, 0, 0.3);
   cursor: pointer;
   transition: all 0.3s;
-  margin-top: 6px;
+  margin-top: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.login-footer { margin-top: 18px; }
+.login-footer { margin-top: 14px; }
 .btn-text-only {
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 11px;
   font-weight: 600;
   text-decoration: underline;
   cursor: pointer;
 }
 
 /* ============================================================
-   TRAINING SCREENS (CONSISTENT UPDATES)
+   TRAINING SCREENS (MOBILE OPTIMIZED)
    ============================================================ */
 .app-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 16px;
+  padding: 8px 12px;
   background: var(--jeju-navy);
   color: white;
   flex-shrink: 0;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
 }
-.header-center { font-size: 13px; font-weight: 600; }
+.header-center { font-size: 12px; font-weight: 600; }
 
-.phase-nav { display: flex; gap: 6px; padding: 10px; overflow-x: auto; background: white; border-bottom: 1px solid var(--border); scrollbar-width: none; }
-.phase-pill { flex-shrink: 0; padding: 6px 12px; border-radius: 15px; font-size: 12px; font-weight: 600; border: 1.5px solid var(--border); background: white; color: var(--text-secondary); }
+.phase-nav { display: flex; gap: 4px; padding: 8px; overflow-x: auto; background: white; border-bottom: 1px solid var(--border); scrollbar-width: none; }
+.phase-pill { flex-shrink: 0; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; border: 1px solid var(--border); background: white; color: var(--text-secondary); }
 .phase-pill.active { background: #0284C7; border-color: #0284C7; color: white; }
-.phase-pill.done { border-color: var(--success); color: var(--success); background: #F0FDF4; }
 
-.phase-card { margin: 0; background: white; border-radius: 0; box-shadow: none; overflow: hidden; border-bottom: 1px solid var(--border); }
-.phase-header { background: #F0F9FF; padding: 12px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #BAE6FD; }
-.phase-number { background: #0284C7; color: white; width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; flex-shrink: 0; }
-.phase-title { font-size: 15px; font-weight: 700; color: #0369A1; }
+.phase-card { margin: 0; background: white; border-radius: 0; border-bottom: 1px solid var(--border); }
+.phase-header { background: #F0F9FF; padding: 10px 14px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #BAE6FD; }
+.phase-number { background: #0284C7; color: white; width: 22px; height: 22px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 11px; flex-shrink: 0; }
+.phase-title { font-size: 14px; font-weight: 700; color: #0369A1; }
 
-.instruction-box { padding: 14px 16px; background: #FFF7F2; border-left: 4px solid var(--jeju-orange); margin: 0; }
-.instruction-label { font-size: 11px; font-weight: 800; color: var(--jeju-orange); margin-bottom: 6px; display: block; }
-.instruction-text { font-size: 14px; line-height: 1.5; color: var(--text-primary); font-weight: 600; white-space: pre-wrap; }
+.instruction-box { padding: 12px 14px; background: #FFF7F2; border-left: 3px solid var(--jeju-orange); }
+.instruction-label { font-size: 10px; font-weight: 800; color: var(--jeju-orange); margin-bottom: 4px; display: block; }
+.instruction-text { font-size: 13px; line-height: 1.4; color: var(--text-primary); font-weight: 600; }
 
-.question-box { padding: 10px 16px; background: #F0F9FF; border-left: 4px solid #0EA5E9; margin: 12px 16px; border-radius: 0 8px 8px 0; }
-.question-label { font-size: 11px; font-weight: 800; color: #0EA5E9; margin-bottom: 4px; display: block; }
-.question-text { font-size: 14px; line-height: 1.4; color: var(--text-primary); font-weight: 700; }
+.question-box { padding: 10px 14px; background: #F0F9FF; border-left: 3px solid #0EA5E9; margin: 10px; border-radius: 0 6px 6px 0; }
+.question-label { font-size: 10px; font-weight: 800; color: #0EA5E9; margin-bottom: 2px; display: block; }
+.question-text { font-size: 13px; line-height: 1.3; color: var(--text-primary); font-weight: 700; }
 
-.rating-section { padding: 14px 16px; background: #FAFAFA; text-align: center; }
-.rating-label { font-size: 12px; font-weight: 700; margin-bottom: 10px; color: var(--text-secondary); }
-.emoji-rating { display: flex; gap: 6px; justify-content: center; margin-bottom: 8px; }
-.emoji-btn { background: white; border: 1.5px solid var(--border); border-radius: 12px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; color: var(--text-secondary); }
-.emoji-btn i { font-size: 24px; }
-.emoji-btn.selected { border-color: var(--jeju-orange); background: var(--jeju-orange); color: white; }
+.rating-section { padding: 12px 14px; background: #FAFAFA; text-align: center; }
+.rating-label { font-size: 11px; font-weight: 700; margin-bottom: 8px; color: var(--text-secondary); }
+.emoji-rating { display: flex; gap: 5px; justify-content: center; margin-bottom: 6px; }
+.emoji-btn { background: white; border: 1px solid var(--border); border-radius: 8px; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.emoji-btn i { font-size: 20px; }
 
-.rating-labels-row { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-secondary); padding: 0 4px; }
-.save-toast { display: none; text-align: center; font-size: 12px; color: var(--success); font-weight: 700; margin-top: 8px; }
+.rating-labels-row { display: flex; justify-content: space-between; font-size: 9px; color: var(--text-secondary); padding: 0 2px; }
 
-.bottom-nav { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px 16px; background: white; border-top: 1px solid var(--border); flex-shrink: 0; }
-.phase-indicator { font-size: 12px; color: var(--text-secondary); font-weight: 600; }
+.bottom-nav { display: flex; align-items: center; justify-content: space-between; padding: 6px 14px 12px; background: white; border-top: 1px solid var(--border); flex-shrink: 0; }
+.phase-indicator { font-size: 11px; color: var(--text-secondary); font-weight: 600; }
 
-.btn-icon i { font-size: 20px; }
-.btn-secondary { padding: 8px 16px; font-size: 13px; font-weight: 700; }
+.btn-icon i { font-size: 18px; }
+.btn-secondary { padding: 6px 12px; font-size: 12px; font-weight: 700; border-radius: 8px; }
+
+/* 태블릿 및 웹용 다시 키우기 */
+@media (min-width: 768px) {
+  .login-card { max-width: 360px; padding: 40px 30px; border-radius: 32px; border-width: 3px; }
+  .logo-img { max-width: 140px; }
+  .form-group input { height: 40px; font-size: 15px; }
+  .main-start-btn { height: 44px; font-size: 16px; }
+  .emoji-btn { width: 52px; height: 52px; }
+  .emoji-btn i { font-size: 28px; }
+}
+
+@media (max-width: 360px) {
+  .emoji-btn { width: 34px; height: 34px; }
+  .emoji-btn i { font-size: 18px; }
+}
 
 .summary-content { padding: 12px; }
 .summary-header-info { padding: 20px; background: white; border-radius: 16px; margin-bottom: 12px; border: 1px solid var(--border); }
