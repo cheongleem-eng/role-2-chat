@@ -247,13 +247,17 @@ function showModule(moduleId) {
   if (moduleId === 'login') {
     document.getElementById('screen-login').classList.add('active');
   } else if (moduleId === 'pram') {
-    const iframe = document.getElementById('iframe-pram');
-    if (!iframe.src) iframe.src = 'https://cheongleem-eng.github.io/b737-door-system-1-/';
     document.getElementById('screen-pram').classList.add('active');
+    setTimeout(() => {
+      const iframe = document.getElementById('iframe-pram');
+      if (!iframe.src) iframe.src = 'https://cheongleem-eng.github.io/b737-door-system-1-/';
+    }, 100);
   } else if (moduleId === 'interphone') {
-    const iframe = document.getElementById('iframe-interphone');
-    if (!iframe.src) iframe.src = 'https://cheongleem-eng.github.io/PHONE/';
     document.getElementById('screen-interphone').classList.add('active');
+    setTimeout(() => {
+      const iframe = document.getElementById('iframe-interphone');
+      if (!iframe.src) iframe.src = 'https://cheongleem-eng.github.io/PHONE/';
+    }, 100);
   }
 }
 
