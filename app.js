@@ -250,13 +250,13 @@ function showModule(moduleId) {
     document.getElementById('screen-pram').classList.add('active');
     setTimeout(() => {
       const iframe = document.getElementById('iframe-pram');
-      if (!iframe.src) iframe.src = 'https://cheongleem-eng.github.io/b737-door-system-1-/';
+      iframe.src = 'https://cheongleem-eng.github.io/b737-door-system-1-/';
     }, 100);
   } else if (moduleId === 'interphone') {
     document.getElementById('screen-interphone').classList.add('active');
     setTimeout(() => {
       const iframe = document.getElementById('iframe-interphone');
-      if (!iframe.src) iframe.src = 'https://cheongleem-eng.github.io/PHONE/';
+      iframe.src = 'https://cheongleem-eng.github.io/PHONE/';
     }, 100);
   }
 }
