@@ -365,6 +365,12 @@ function goHome() {
   }
 }
 
+function confirmEndTraining() {
+  if (confirm('모든 단계를 완료하지 않았습니다. 여기서 훈련을 종료하고 결과를 확인하시겠습니까?')) {
+    showSummary();
+  }
+}
+
 function showSummary() {
   hideAllScreens();
   document.getElementById('screen-summary').classList.add('active');
