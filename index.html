@@ -72,55 +72,30 @@
           <h2 class="phase-title" id="phase-title"></h2>
         </div>
 
-        <!-- Passenger Instruction Section -->
-        <div id="section-roleplay">
+        <!-- Unified Roleplay & Rating Section -->
+        <div id="section-unified">
           <div class="instruction-box" id="instruction-box">
-            <p class="instruction-label"><i class="ph-fill ph-check-circle"></i> 나의 행동 지시</p>
+            <p class="instruction-label blink-text"><i class="ph-fill ph-warning-circle"></i> 나의 행동 지시</p>
             <p class="instruction-text" id="instruction-text"></p>
           </div>
           <div class="question-box" id="question-box" style="display:none;">
             <p class="question-label"><i class="ph-fill ph-chat-circle-text"></i> 승무원에게 이 질문을 하세요</p>
             <p class="question-text" id="question-text"></p>
           </div>
-          <div style="padding: 16px 24px 24px;">
-            <button class="btn-primary" onclick="showEvalSection()">
-              승무원 평가하기 <i class="ph-bold ph-arrow-right"></i>
-            </button>
-          </div>
-        </div>
-
-        <!-- Evaluator Rating Section -->
-        <div id="section-evaluate" style="display:none;">
-          <p class="eval-criteria-label"><i class="ph-fill ph-list-checks"></i> 승무원 평가 기준 (확인용)</p>
-          <ul class="eval-criteria" id="eval-criteria"></ul>
-
-          <div class="rating-section">
-            <p class="rating-label">승무원 종합 평가 (클릭하세요)</p>
+          
+          <div class="rating-section" style="margin-top: 12px;">
+            <p class="rating-label">승무원 대처 평가 (점수 클릭 시 자동 저장 및 다음)</p>
             <div class="emoji-rating" id="emoji-rating">
-              <button class="emoji-btn level-1" data-score="1" onclick="setRating(this, 1)" title="매우 불만족"><i class="ph-duotone ph-smiley-angry"></i></button>
-              <button class="emoji-btn level-2" data-score="2" onclick="setRating(this, 2)" title="불만족"><i class="ph-duotone ph-smiley-sad"></i></button>
-              <button class="emoji-btn level-3" data-score="3" onclick="setRating(this, 3)" title="보통"><i class="ph-duotone ph-smiley-meh"></i></button>
-              <button class="emoji-btn level-4" data-score="4" onclick="setRating(this, 4)" title="만족"><i class="ph-duotone ph-smiley"></i></button>
-              <button class="emoji-btn level-5" data-score="5" onclick="setRating(this, 5)" title="매우 만족"><i class="ph-duotone ph-star"></i></button>
+              <button class="emoji-btn level-1" data-score="1" onclick="setRatingAndSave(1)" title="매우 불만족"><i class="ph-duotone ph-smiley-angry"></i></button>
+              <button class="emoji-btn level-2" data-score="2" onclick="setRatingAndSave(2)" title="불만족"><i class="ph-duotone ph-smiley-sad"></i></button>
+              <button class="emoji-btn level-3" data-score="3" onclick="setRatingAndSave(3)" title="보통"><i class="ph-duotone ph-smiley-meh"></i></button>
+              <button class="emoji-btn level-4" data-score="4" onclick="setRatingAndSave(4)" title="만족"><i class="ph-duotone ph-smiley"></i></button>
+              <button class="emoji-btn level-5" data-score="5" onclick="setRatingAndSave(5)" title="매우 만족"><i class="ph-duotone ph-star"></i></button>
             </div>
             <div class="rating-labels-row">
               <span>매우 불만족</span><span>불만족</span><span>보통</span><span>만족</span><span>매우 만족</span>
             </div>
-          </div>
-
-          <div class="form-group" style="padding: 0 24px;">
-            <label>코멘트 (선택)</label>
-            <textarea id="eval-comment" placeholder="추가 의견을 입력하세요..." rows="3"></textarea>
-          </div>
-
-          <div style="padding: 16px 24px 24px;">
-            <button class="btn-outline" onclick="showRoleplaySection()" style="margin-bottom: 16px;">
-              <i class="ph-bold ph-arrow-left"></i> 다시 지시사항 보기
-            </button>
-            <button class="btn-primary" style="margin-top: 0;" onclick="saveEval()">
-              평가 저장 후 다음 <i class="ph-bold ph-floppy-disk"></i>
-            </button>
-            <div class="save-toast" id="save-toast"><i class="ph-bold ph-check"></i> 저장되었습니다!</div>
+            <div class="save-toast" id="save-toast"><i class="ph-bold ph-check"></i> 저장 후 다음으로 이동합니다...</div>
           </div>
         </div>
       </div>

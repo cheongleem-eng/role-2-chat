@@ -104,11 +104,11 @@ const PHASES = [
 ];
 
 const EMOJI_MAP   = { 
-  1: '<i class="ph-duotone ph-smiley-angry" style="color: #EF4444;"></i>', 
-  2: '<i class="ph-duotone ph-smiley-sad" style="color: #F97316;"></i>', 
-  3: '<i class="ph-duotone ph-smiley-meh" style="color: #EAB308;"></i>', 
-  4: '<i class="ph-duotone ph-smiley" style="color: #84CC16;"></i>', 
-  5: '<i class="ph-duotone ph-star" style="color: #06B6D4;"></i>' 
+  1: '<i class="ph-duotone ph-smiley-angry"></i>', 
+  2: '<i class="ph-duotone ph-smiley-sad"></i>', 
+  3: '<i class="ph-duotone ph-smiley-meh"></i>', 
+  4: '<i class="ph-duotone ph-smiley"></i>', 
+  5: '<i class="ph-duotone ph-star"></i>' 
 };
 const SCORE_LABEL = { 1: '매우 불만족', 2: '불만족', 3: '보통', 4: '만족', 5: '매우 만족' };
 
@@ -148,6 +148,60 @@ function getPhaseRef(trainee, phaseId) {
     .collection('evaluations')
     .doc(`${state.date}_${trainee}`)
     .collection('phases')
+    .doc(String(phaseId));
+}
+
+// ============================================================
+// CORE ACTIONS
+// ============================================================
+async function setRatingAndSave(score) {
+  selectedRating = score;
+  
+  // UI Feedback: Highlight selected
+  document.querySelectorAll('.emoji-btn').forEach(b => {
+    b.classList.remove('selected');
+    if (parseInt(b.dataset.score) === score) b.classList.add('selected');
+  });
+
+  // Save (Async)
+  const comment = ""; // Default empty in quick save
+  saveEvaluation(score, comment);
+
+  // Show Toast
+  const toast = document.getElementById('save-toast');
+  toast.style.display = 'block';
+
+  // Auto-next after short delay
+  setTimeout(() => {
+    if (state.currentPhase < PHASES.length - 1) {
+      changePhase(1);
+    } else {
+      showSummary();
+    }
+  }, 1000);
+}
+
+async function saveEvaluation(score, comment) {
+  const phaseId = PHASES[state.currentPhase].id;
+  state.evaluations[phaseId] = { score, comment, timestamp: new Date() };
+
+  if (fbReady) {
+    try {
+      await getPhaseRef(state.traineeName, phaseId).set({
+        trainee: state.traineeName,
+        evaluator: state.evaluatorName,
+        date: state.date,
+        phaseId: phaseId,
+        phaseTitle: PHASES[state.currentPhase].title,
+        score: score,
+        comment: comment,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+    } catch (e) {
+      console.error("Save error:", e);
+    }
+  }
+}
     .doc(String(phaseId));
 }
 
