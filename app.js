@@ -133,10 +133,12 @@ let selectedRating = null;
 // ============================================================
 function initFirebase() {
   try {
-    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
-    db      = firebase.firestore();
-    fbReady = true;
-    console.log('✅ Firebase Firestore 연결 성공');
+    if (typeof firebase !== 'undefined' && !firebase.apps.length) {
+      firebase.initializeApp(FIREBASE_CONFIG);
+      db      = firebase.firestore();
+      fbReady = true;
+      console.log('✅ Firebase Firestore 연결 성공');
+    }
   } catch (e) {
     console.warn('⚠️ Firebase 초기화 실패 — 로컬 모드:', e.message);
     fbReady = false;
@@ -144,6 +146,7 @@ function initFirebase() {
 }
 
 function getPhaseRef(trainee, phaseId) {
+  if (!db) return null;
   return db
     .collection('evaluations')
     .doc(`${state.date}_${trainee}`)
@@ -153,107 +156,6 @@ function getPhaseRef(trainee, phaseId) {
 
 // ============================================================
 // CORE ACTIONS
-// ============================================================
-async function setRatingAndSave(score) {
-  selectedRating = score;
-  
-  // UI Feedback: Highlight selected
-  document.querySelectorAll('.emoji-btn').forEach(b => {
-    b.classList.remove('selected');
-    if (parseInt(b.dataset.score) === score) b.classList.add('selected');
-  });
-
-  // Save (Async)
-  const comment = ""; // Default empty in quick save
-  saveEvaluation(score, comment);
-
-  // Show Toast
-  const toast = document.getElementById('save-toast');
-  toast.style.display = 'block';
-
-  // Auto-next after short delay
-  setTimeout(() => {
-    if (state.currentPhase < PHASES.length - 1) {
-      changePhase(1);
-    } else {
-      showSummary();
-    }
-  }, 1000);
-}
-
-async function saveEvaluation(score, comment) {
-  const phaseId = PHASES[state.currentPhase].id;
-  state.evaluations[phaseId] = { score, comment, timestamp: new Date() };
-
-  if (fbReady) {
-    try {
-      await getPhaseRef(state.traineeName, phaseId).set({
-        trainee: state.traineeName,
-        evaluator: state.evaluatorName,
-        date: state.date,
-        phaseId: phaseId,
-        phaseTitle: PHASES[state.currentPhase].title,
-        score: score,
-        comment: comment,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      }, { merge: true });
-    } catch (e) {
-      console.error("Save error:", e);
-    }
-  }
-}
-    .doc(String(phaseId));
-}
-
-async function upsertSessionMeta() {
-  if (!fbReady || !state.traineeName) return;
-  try {
-    await db.collection('evaluations').doc(`${state.date}_${state.traineeName}`).set({
-      trainee: state.traineeName,
-      evaluator: state.evaluatorName,
-      date: state.date,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge: true });
-  } catch (e) {
-    console.error('세션 메타 저장 실패:', e);
-  }
-}
-
-async function savePhaseToFirestore(phaseId, data) {
-  if (!fbReady || !state.traineeName) return;
-  try {
-    await getPhaseRef(state.traineeName, phaseId).set(data, { merge: true });
-    console.log(`✅ Phase ${phaseId} 저장 완료`);
-  } catch (e) {
-    console.error('Firestore 저장 오류:', e);
-    showFbError();
-  }
-}
-
-async function loadSessionFromFirestore() {
-  if (!fbReady || !state.traineeName) return;
-  try {
-    showLoadingOverlay(true);
-    const snap = await db
-      .collection('evaluations')
-      .doc(`${state.date}_${state.traineeName}`)
-      .collection('phases')
-      .get();
-
-    snap.forEach(doc => {
-      state.evaluations[parseInt(doc.id)] = doc.data();
-    });
-    refreshPhasePills();
-    console.log(`✅ ${snap.size}개 단계 불러오기 완료`);
-  } catch (e) {
-    console.error('Firestore 불러오기 실패:', e);
-  } finally {
-    showLoadingOverlay(false);
-  }
-}
-
-// ============================================================
-// SESSION / LOGIN
 // ============================================================
 async function startSession() {
   const eName = document.getElementById('input-evaluator-name').value.trim();
@@ -283,29 +185,10 @@ async function startSession() {
   renderPhase(0);
 }
 
-// ============================================================
-// MAIN SCREEN RENDER
-// ============================================================
-function buildPhaseNav() {
-  const nav = document.getElementById('phase-nav');
-  nav.innerHTML = '';
-  PHASES.forEach((p, i) => {
-    const pill = document.createElement('button');
-    pill.className = 'phase-pill' + (i === 0 ? ' active' : '');
-    pill.textContent = `${p.id}. ${p.title}`;
-    pill.dataset.index = i;
-    pill.onclick = () => changePhase(null, i);
-    nav.appendChild(pill);
-  });
-}
-
 function renderPhase(index) {
   const phase = PHASES[index];
   state.currentPhase = index;
   selectedRating = null;
-
-  // Reset to Roleplay view
-  showRoleplaySection();
 
   // Header
   document.getElementById('phase-number').textContent = phase.id;
@@ -321,24 +204,13 @@ function renderPhase(index) {
     qBox.style.display = 'none';
   }
 
-  // Evaluator Criteria
-  const ul = document.getElementById('eval-criteria');
-  ul.innerHTML = '';
-  phase.evalCriteria.forEach(c => {
-    const li = document.createElement('li');
-    li.textContent = c;
-    ul.appendChild(li);
-  });
-
   // Reset or Load Rating
   document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
-  document.getElementById('eval-comment').value = '';
   document.getElementById('save-toast').style.display = 'none';
 
   const existing = state.evaluations[phase.id];
   if (existing) {
     selectedRating = existing.score;
-    document.getElementById('eval-comment').value = existing.comment || '';
     const btn = document.querySelector(`.emoji-btn[data-score="${existing.score}"]`);
     if (btn) btn.classList.add('selected');
   }
@@ -348,7 +220,73 @@ function renderPhase(index) {
   document.getElementById('btn-prev').disabled = index === 0;
   document.getElementById('btn-next').disabled = index === PHASES.length - 1;
   updatePhaseNavActive(index);
-  window.scrollTo(0, 0);
+  
+  // Scroll content area to top
+  const scrollContent = document.querySelector('.scroll-content');
+  if (scrollContent) scrollContent.scrollTo(0, 0);
+}
+
+async function setRatingAndSave(score) {
+  selectedRating = score;
+  
+  // UI Feedback: Highlight selected
+  document.querySelectorAll('.emoji-btn').forEach(b => {
+    b.classList.remove('selected');
+    if (parseInt(b.dataset.score) === score) b.classList.add('selected');
+  });
+
+  // Save (Async)
+  saveEvaluation(score, "");
+
+  // Show Toast
+  const toast = document.getElementById('save-toast');
+  toast.style.display = 'block';
+
+  // Auto-next after short delay
+  setTimeout(() => {
+    if (state.currentPhase < PHASES.length - 1) {
+      changePhase(1);
+    } else {
+      showSummary();
+    }
+  }, 1000);
+}
+
+async function saveEvaluation(score, comment) {
+  const phaseId = PHASES[state.currentPhase].id;
+  const record = {
+    score,
+    comment,
+    phaseId,
+    phaseTitle: PHASES[state.currentPhase].title,
+    trainee: state.traineeName,
+    evaluator: state.evaluatorName,
+    date: state.date,
+    timestamp: new Date().toISOString()
+  };
+
+  state.evaluations[phaseId] = record;
+  markPillDone(state.currentPhase);
+
+  if (fbReady) {
+    try {
+      // Upsert session meta first
+      await db.collection('evaluations').doc(`${state.date}_${state.traineeName}`).set({
+        trainee: state.traineeName,
+        evaluator: state.evaluatorName,
+        date: state.date,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+
+      // Save phase data
+      await getPhaseRef(state.traineeName, phaseId).set({
+        ...record,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+    } catch (e) {
+      console.error("Save error:", e);
+    }
+  }
 }
 
 function changePhase(delta, direct) {
@@ -357,264 +295,48 @@ function changePhase(delta, direct) {
   renderPhase(next);
 }
 
-function setRating(btn, score) {
-  document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
-  selectedRating = score;
-}
-
-async function saveEval() {
-  if (!selectedRating) { alert('평가 점수를 선택해주세요.'); return; }
-
-  const comment  = document.getElementById('eval-comment').value.trim();
-  const phaseId  = PHASES[state.currentPhase].id;
-
-  const record = {
-    score:      selectedRating,
-    comment,
-    phaseId,
-    phaseTitle: PHASES[state.currentPhase].title,
-    trainee:    state.traineeName,
-    evaluator:  state.evaluatorName,
-    date:       state.date,
-    timestamp:  new Date().toISOString(),
-    ...(fbReady && { savedAt: firebase.firestore.FieldValue.serverTimestamp() })
-  };
-
-  // 로컬 캐시
-  state.evaluations[phaseId] = record;
-
-  // 비동기 저장 처리 (UI를 멈추지 않음)
-  upsertSessionMeta();
-  savePhaseToFirestore(phaseId, record);
-
-  markPillDone(state.currentPhase);
-
-  const toast = document.getElementById('save-toast');
-  toast.textContent = fbReady ? '✅ 저장되었습니다!' : '✅ 오프라인 저장됨';
-  toast.style.display = 'block';
-  
-  setTimeout(() => { 
-    toast.style.display = 'none'; 
-    // 저장 후 바로 다음 단계로
-    if (state.currentPhase < PHASES.length - 1) {
-      changePhase(1);
-    } else {
-      alert('모든 훈련 평가가 완료되었습니다!');
-      showSummary();
-    }
-  }, 600); // 0.6초 뒤 빠른 전환
-}
-
-// ============================================================
-// SUMMARY SCREEN
-// ============================================================
-function showSummary() {
-  hideAllScreens();
-  document.getElementById('screen-summary').classList.add('active');
-
-  const container = document.getElementById('summary-content');
-  container.innerHTML = '';
-
-  const headerInfo = document.createElement('div');
-  headerInfo.className = 'summary-header-info';
-  headerInfo.style.marginBottom = '16px';
-  headerInfo.style.padding = '20px';
-  headerInfo.innerHTML = `
-    <h2 style="font-size: 18px;"><i class="ph-fill ph-airplane-tilt" style="color:var(--jeju-orange)"></i> 대상: ${state.traineeName}</h2>
-    <p style="margin-bottom: 0;">평가자: ${state.evaluatorName} | ${state.date}</p>
-  `;
-  container.appendChild(headerInfo);
-
-  const listCard = document.createElement('div');
-  listCard.className = 'summary-card';
-  listCard.style.padding = '8px 0';
-  
-  let listHtml = '<div style="display: flex; flex-direction: column;">';
-  
-  PHASES.forEach(phase => {
-    const ev = state.evaluations[phase.id];
-    listHtml += `
-      <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; border-bottom: 1px solid var(--border);">
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <span style="font-size: 13px; font-weight: 700; color: white; background: var(--jeju-orange); width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center;">${phase.id}</span>
-          <span style="font-size: 14px; font-weight: 600; color: var(--text-primary);">${phase.title}</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="font-size: 22px; display: flex;">${ev ? EMOJI_MAP[ev.score] : '<i class="ph ph-minus" style="color:var(--text-secondary)"></i>'}</span>
-          <span style="font-size: 13px; font-weight: 700; color: var(--jeju-orange); min-width: 45px; text-align: right;">${ev ? SCORE_LABEL[ev.score] : '미평가'}</span>
-        </div>
-      </div>
-    `;
-  });
-  
-  listHtml += '</div>';
-  listCard.innerHTML = listHtml;
-  container.appendChild(listCard);
-}
-
-function backToMain() {
-  hideAllScreens();
-  document.getElementById('screen-main').classList.add('active');
-}
-
-// ============================================================
-// ADMIN & EXPORT
-// ============================================================
-async function promptAdminLogin() {
-  const pw = prompt("관리자 비밀번호를 입력하세요.");
-  if (pw === "Jeju@ir1") {
-    hideAllScreens();
-    document.getElementById('screen-admin').classList.add('active');
-    await loadAndRenderAdminData();
-  } else if (pw !== null) {
-    alert("비밀번호가 일치하지 않습니다.");
-  }
-}
-
-let adminDataCache = [];
-
-async function loadAndRenderAdminData() {
-  if (!fbReady) {
-    alert("오프라인 모드에서는 전체 데이터를 불러올 수 없습니다.");
-    return;
-  }
-  
-  showLoadingOverlay(true);
+async function loadSessionFromFirestore() {
+  if (!fbReady || !state.traineeName) return;
   try {
-    const listContainer = document.getElementById('admin-date-list');
-    listContainer.innerHTML = '';
-    adminDataCache = [];
-    
-    // Get all sessions metadata
-    const metaSnap = await db.collection('evaluations').get();
-    const dateGroups = {};
-    
-    for (const doc of metaSnap.docs) {
-      const meta = doc.data();
-      const date = meta.date;
-      if (!date) continue;
-      
-      if (!dateGroups[date]) dateGroups[date] = [];
-      
-      const phasesSnap = await doc.ref.collection('phases').get();
-      const phasesData = {};
-      phasesSnap.forEach(pDoc => {
-        phasesData[pDoc.id] = pDoc.data();
-      });
-      
-      const record = {
-        trainee: meta.trainee,
-        evaluator: meta.evaluator,
-        date: meta.date,
-        phases: phasesData
-      };
-      
-      dateGroups[date].push(record);
-      adminDataCache.push(record);
-    }
-    
-    if (Object.keys(dateGroups).length === 0) {
-      listContainer.innerHTML = '<p style="color:var(--text-secondary); font-size:14px;">데이터가 없습니다.</p>';
-      return;
-    }
-    
-    const sortedDates = Object.keys(dateGroups).sort().reverse();
-    for (const date of sortedDates) {
-      const count = dateGroups[date].length;
-      
-      const item = document.createElement('div');
-      item.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:16px; background:white; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.05);';
-      item.innerHTML = `
-        <div>
-          <div style="font-weight:700; font-size:16px; color:var(--text-primary);">${date}</div>
-          <div style="font-size:13px; color:var(--text-secondary); margin-top:4px;">총 ${count}건의 훈련 데이터</div>
-        </div>
-        <button class="btn-outline" style="padding:8px 12px; font-size:13px; width:auto;" onclick="downloadExcelByDate('${date}')">다운로드</button>
-      `;
-      listContainer.appendChild(item);
-    }
-    
+    showLoadingOverlay(true);
+    const snap = await db
+      .collection('evaluations')
+      .doc(`${state.date}_${state.traineeName}`)
+      .collection('phases')
+      .get();
+
+    snap.forEach(doc => {
+      state.evaluations[parseInt(doc.id)] = doc.data();
+    });
+    refreshPhasePills();
   } catch (e) {
-    console.error('관리자 데이터 로드 실패:', e);
-    alert('데이터를 불러오는데 실패했습니다.');
+    console.error('Firestore 불러오기 실패:', e);
   } finally {
     showLoadingOverlay(false);
   }
 }
 
-function formatDataForExcel(records) {
-  const rows = [];
-  for (const rec of records) {
-    const baseRow = {
-      '훈련 날짜': rec.date,
-      '훈련생 (승객/평가자)': rec.evaluator,
-      '평가 대상 (승무원)': rec.trainee,
-    };
-    
-    let totalScore = 0;
-    let count = 0;
-    
-    PHASES.forEach(p => {
-      const phaseData = rec.phases[p.id];
-      if (phaseData) {
-        baseRow[`[${p.id}] ${p.title} - 점수`] = phaseData.score;
-        baseRow[`[${p.id}] ${p.title} - 코멘트`] = phaseData.comment || '';
-        totalScore += phaseData.score;
-        count++;
-      } else {
-        baseRow[`[${p.id}] ${p.title} - 점수`] = '미평가';
-        baseRow[`[${p.id}] ${p.title} - 코멘트`] = '';
-      }
-    });
-    
-    baseRow['평균 점수'] = count > 0 ? (totalScore / count).toFixed(1) : '0.0';
-    rows.push(baseRow);
-  }
-  return rows;
-}
-
-function downloadExcelByDate(date) {
-  const records = adminDataCache.filter(r => r.date === date);
-  const rows = formatDataForExcel(records);
-  generateExcel(rows, `제주항공_객실훈련평가_${date}.xlsx`);
-}
-
-function downloadAllExcel() {
-  if (adminDataCache.length === 0) {
-    alert("다운로드할 데이터가 없습니다.");
-    return;
-  }
-  const rows = formatDataForExcel(adminDataCache);
-  generateExcel(rows, `제주항공_객실훈련평가_전체데이터.xlsx`);
-}
-
-function generateExcel(rows, filename) {
-  const worksheet = XLSX.utils.json_to_sheet(rows);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "평가결과");
-  
-  const colWidths = [
-    { wch: 12 }, // 날짜
-    { wch: 20 }, // 훈련생
-    { wch: 20 }, // 평가대상
-  ];
-  PHASES.forEach(() => { colWidths.push({ wch: 10 }); colWidths.push({ wch: 30 }); });
-  colWidths.push({ wch: 10 }); // 평균
-  worksheet['!cols'] = colWidths;
-
-  XLSX.writeFile(workbook, filename);
-}
-
 // ============================================================
 // UI HELPERS
 // ============================================================
+function buildPhaseNav() {
+  const nav = document.getElementById('phase-nav');
+  nav.innerHTML = '';
+  PHASES.forEach((p, i) => {
+    const pill = document.createElement('button');
+    pill.className = 'phase-pill' + (i === 0 ? ' active' : '');
+    pill.textContent = `${p.id}. ${p.title}`;
+    pill.dataset.index = i;
+    pill.onclick = () => changePhase(null, i);
+    nav.appendChild(pill);
+  });
+}
+
 function updatePhaseNavActive(activeIndex) {
   const nav = document.getElementById('phase-nav');
   document.querySelectorAll('#phase-nav .phase-pill').forEach((p, i) => {
     p.classList.toggle('active', i === activeIndex);
     if (i === activeIndex) {
-      // 해당 버튼이 화면에 보이도록 가로 스크롤 이동
       const scrollLeft = p.offsetLeft - (nav.offsetWidth / 2) + (p.offsetWidth / 2);
       nav.scrollTo({ left: scrollLeft, behavior: 'smooth' });
     }
@@ -643,57 +365,79 @@ function goHome() {
   }
 }
 
+function showSummary() {
+  hideAllScreens();
+  document.getElementById('screen-summary').classList.add('active');
+
+  const container = document.getElementById('summary-content');
+  container.innerHTML = '';
+
+  const headerInfo = document.createElement('div');
+  headerInfo.className = 'summary-header-info';
+  headerInfo.innerHTML = `
+    <h2><i class="ph-fill ph-airplane-tilt" style="color:var(--jeju-orange)"></i> 대상: ${state.traineeName}</h2>
+    <p>평가자: ${state.evaluatorName} | ${state.date}</p>
+  `;
+  container.appendChild(headerInfo);
+
+  const listCard = document.createElement('div');
+  listCard.className = 'summary-card';
+  
+  let listHtml = '<div style="display: flex; flex-direction: column;">';
+  PHASES.forEach(phase => {
+    const ev = state.evaluations[phase.id];
+    listHtml += `
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; border-bottom: 1px solid var(--border);">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="font-size: 13px; font-weight: 700; color: white; background: var(--jeju-orange); width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center;">${phase.id}</span>
+          <span style="font-size: 14px; font-weight: 600;">${phase.title}</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 22px;">${ev ? EMOJI_MAP[ev.score] : '<i class="ph ph-minus"></i>'}</span>
+          <span style="font-size: 13px; font-weight: 700; color: var(--jeju-orange);">${ev ? SCORE_LABEL[ev.score] : '미평가'}</span>
+        </div>
+      </div>
+    `;
+  });
+  listHtml += '</div>';
+  listCard.innerHTML = listHtml;
+  container.appendChild(listCard);
+}
+
+function backToMain() {
+  hideAllScreens();
+  document.getElementById('screen-main').classList.add('active');
+}
+
+async function promptAdminLogin() {
+  const pw = prompt("관리자 비밀번호를 입력하세요.");
+  if (pw === "Jeju@ir1") {
+    hideAllScreens();
+    document.getElementById('screen-admin').classList.add('active');
+    await loadAndRenderAdminData();
+  } else if (pw !== null) {
+    alert("비밀번호가 일치하지 않습니다.");
+  }
+}
+
 function showLoadingOverlay(visible) {
   let el = document.getElementById('loading-overlay');
   if (!el) {
     el = document.createElement('div');
     el.id = 'loading-overlay';
     el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;';
-    el.innerHTML = '<div style="background:white;padding:28px 36px;border-radius:16px;font-weight:700;font-size:16px;text-align:center;">🔥 Firestore에서<br>불러오는 중...</div>';
+    el.innerHTML = '<div style="background:white;padding:28px 36px;border-radius:16px;font-weight:700;text-align:center;">불러오는 중...</div>';
     document.body.appendChild(el);
   }
   el.style.display = visible ? 'flex' : 'none';
-}
-
-function showFbError() {
-  const toast = document.getElementById('save-toast');
-  if (!toast) return;
-  const origBg    = toast.style.background;
-  const origColor = toast.style.color;
-  toast.textContent = '⚠️ Firestore 저장 실패 — 로컬에만 저장됨';
-  toast.style.background = '#FEF2F2';
-  toast.style.color      = '#DC2626';
-  toast.style.display    = 'block';
-  setTimeout(() => {
-    toast.style.display = 'none';
-    toast.style.background = origBg;
-    toast.style.color      = origColor;
-  }, 3000);
-}
-
-function showRoleplaySection() {
-  const roleplaySec = document.getElementById('section-roleplay');
-  const evalSec = document.getElementById('section-evaluate');
-  if(roleplaySec && evalSec) {
-    roleplaySec.style.display = 'block';
-    evalSec.style.display = 'none';
-  }
-}
-
-function showEvalSection() {
-  const roleplaySec = document.getElementById('section-roleplay');
-  const evalSec = document.getElementById('section-evaluate');
-  if(roleplaySec && evalSec) {
-    roleplaySec.style.display = 'none';
-    evalSec.style.display = 'block';
-    window.scrollTo(0, 0);
-  }
 }
 
 // ============================================================
 // INIT
 // ============================================================
 window.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('input-date').value = new Date().toISOString().split('T')[0];
+  if (document.getElementById('input-date')) {
+    document.getElementById('input-date').value = new Date().toISOString().split('T')[0];
+  }
   initFirebase();
 });
