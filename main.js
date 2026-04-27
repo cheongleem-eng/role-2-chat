@@ -1,5 +1,5 @@
 /* ============================================================
-   Pattern Lock Component — main.js (iOS Optimized)
+   Pattern Lock Component — main.js (High Sensitivity)
    ============================================================ */
 
 class PatternLock {
@@ -10,6 +10,7 @@ class PatternLock {
     this.path = [];
     this.isDrawing = false;
     this.correctPattern = "412369";
+    this.dotCenters = []; // 점들의 중심 좌표 캐싱
     
     this.init();
   }
@@ -26,26 +27,47 @@ class PatternLock {
     this.svg = this.container.querySelector('.pattern-svg');
     this.dotElements = this.container.querySelectorAll('.dot');
     
-    // 강제로 터치 액션 제한
+    // 모바일 드래그 최적화
     this.grid.style.touchAction = 'none';
+    this.grid.style.userSelect = 'none';
+    this.grid.style.webkitUserSelect = 'none';
     
     this.addEventListeners();
   }
 
+  // 드래그 시작 시 점들의 실시간 좌표를 미리 계산하여 성능 향상
+  cacheDotPositions() {
+    this.dotCenters = [];
+    this.dotElements.forEach((el, index) => {
+      const rect = el.getBoundingClientRect();
+      this.dotCenters.push({
+        index: index + 1,
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2
+      });
+    });
+  }
+
   addEventListeners() {
     const start = (e) => {
-      // 아이폰에서 이벤트 전파 방지 및 기본 동작 차단
+      // 드래그 시 브라우저 기본 동작(스크롤 등) 원천 차단
       if (e.cancelable) e.preventDefault();
+      
       this.isDrawing = true;
       this.path = [];
       this.clearStatus();
-      this.handleMove(e);
+      this.cacheDotPositions(); // 시작할 때 좌표 캐싱
+      
+      const point = this.getEventPoint(e);
+      this.handleMoveAt(point.x, point.y);
     };
 
     const move = (e) => {
       if (!this.isDrawing) return;
-      if (e.cancelable) e.preventDefault(); // 스크롤 방지
-      this.handleMove(e);
+      if (e.cancelable) e.preventDefault();
+      
+      const point = this.getEventPoint(e);
+      this.handleMoveAt(point.x, point.y);
     };
 
     const end = (e) => {
@@ -54,73 +76,72 @@ class PatternLock {
       this.checkPattern();
     };
 
-    // Mouse Events
+    // Grid 영역에서 이벤트 리스너 등록
+    this.grid.addEventListener('touchstart', start, { passive: false });
+    this.grid.addEventListener('touchmove', move, { passive: false });
+    this.grid.addEventListener('touchend', end, { passive: false });
+
     this.grid.addEventListener('mousedown', start);
     window.addEventListener('mousemove', move);
     window.addEventListener('mouseup', end);
-
-    // Touch Events (iOS 전용 설정 추가)
-    this.grid.addEventListener('touchstart', start, { passive: false });
-    this.grid.addEventListener('touchmove', move, { passive: false });
-    window.addEventListener('touchend', end, { passive: false });
   }
 
-  handleMove(e) {
-    let clientX, clientY;
-    
+  getEventPoint(e) {
     if (e.touches && e.touches.length > 0) {
-      clientX = e.touches[0].clientX;
-      clientY = e.touches[0].clientY;
-    } else {
-      clientX = e.clientX;
-      clientY = e.clientY;
+      return { x: e.touches[0].clientX, y: e.touches[0].clientY };
     }
+    return { x: e.clientX, y: e.clientY };
+  }
+
+  handleMoveAt(x, y) {
+    const targetDot = this.findNearestDot(x, y);
     
-    const targetDot = this.getDotAt(clientX, clientY);
     if (targetDot && !this.path.includes(targetDot)) {
       this.path.push(targetDot);
       this.dotElements[targetDot - 1].classList.add('active');
       
-      // 진동 피드백 (지원되는 기기에서)
-      if (navigator.vibrate) navigator.vibrate(10);
+      // 햅틱 피드백
+      if (navigator.vibrate) navigator.vibrate(15);
     }
     
-    this.renderLines(clientX, clientY);
+    this.renderLines(x, y);
   }
 
-  getDotAt(x, y) {
-    for (let i = 0; i < this.dotElements.length; i++) {
-      const rect = this.dotElements[i].getBoundingClientRect();
-      const dotX = rect.left + rect.width / 2;
-      const dotY = rect.top + rect.height / 2;
-      
-      // 거리 계산 (아이폰 터치 오차 고려하여 범위 확대)
-      const distance = Math.hypot(x - dotX, y - dotY);
-      
-      if (distance < 35) { 
-        return i + 1;
+  findNearestDot(x, y) {
+    // 캐싱된 좌표를 바탕으로 가장 가까운 점 찾기 (성능 우수)
+    for (const dot of this.dotCenters) {
+      const dist = Math.hypot(x - dot.x, y - dot.y);
+      if (dist < 38) { // 인식 범위 약간 더 확대
+        return dot.index;
       }
     }
     return null;
   }
 
   renderLines(currentX, currentY) {
+    if (this.path.length === 0) return;
+
     let svgHtml = '';
-    const rect = this.svg.getBoundingClientRect();
+    const svgRect = this.svg.getBoundingClientRect();
 
     for (let i = 0; i < this.path.length; i++) {
-      const dotRect = this.dotElements[this.path[i] - 1].getBoundingClientRect();
-      const x1 = dotRect.left - rect.left + dotRect.width / 2;
-      const y1 = dotRect.top - rect.top + dotRect.height / 2;
+      const dotIdx = this.path[i];
+      const center = this.dotCenters[dotIdx - 1];
+      
+      const x1 = center.x - svgRect.left;
+      const y1 = center.y - svgRect.top;
 
       if (i < this.path.length - 1) {
-        const nextDotRect = this.dotElements[this.path[i + 1] - 1].getBoundingClientRect();
-        const x2 = nextDotRect.left - rect.left + nextDotRect.width / 2;
-        const y2 = nextDotRect.top - rect.top + nextDotRect.height / 2;
+        // 이미 연결된 점들 사이의 선
+        const nextDotIdx = this.path[i + 1];
+        const nextCenter = this.dotCenters[nextDotIdx - 1];
+        const x2 = nextCenter.x - svgRect.left;
+        const y2 = nextCenter.y - svgRect.top;
         svgHtml += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="pattern-line" />`;
       } else if (this.isDrawing) {
-        const x2 = currentX - rect.left;
-        const y2 = currentY - rect.top;
+        // 마지막 점과 현재 손가락 위치 사이의 실시간 선
+        const x2 = currentX - svgRect.left;
+        const y2 = currentY - svgRect.top;
         svgHtml += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="pattern-line active" />`;
       }
     }
@@ -135,8 +156,7 @@ class PatternLock {
     } else {
       if (this.path.length > 0) {
         this.grid.classList.add('error');
-        // 실패 시 진동
-        if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
+        if (navigator.vibrate) navigator.vibrate([40, 40, 40]);
         setTimeout(() => this.clearStatus(), 1000);
       }
     }
@@ -151,15 +171,13 @@ class PatternLock {
   }
 }
 
-// Initialize Pattern Lock
+// 초기화
 window.addEventListener('DOMContentLoaded', () => {
   const container = document.getElementById('pattern-container');
   if (container) {
     new PatternLock('pattern-container', () => {
-      const lockScreen = document.getElementById('screen-lock');
-      const portalScreen = document.getElementById('screen-portal');
-      if (lockScreen) lockScreen.classList.remove('active');
-      if (portalScreen) portalScreen.classList.add('active');
+      document.getElementById('screen-lock').style.display = 'none';
+      document.getElementById('screen-portal').classList.add('active');
     });
   }
 });
