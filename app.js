@@ -392,12 +392,25 @@ function loadChatRooms() {
         
         const item = document.createElement('div');
         item.className = 'room-item';
+        
+        let deleteBtn = '';
+        if (chatState.isAdmin) {
+          deleteBtn = `
+            <button class="btn-delete-room" onclick="event.stopPropagation(); deleteChatRoom('${room.id}')">
+              <i class="ph-bold ph-trash"></i>
+            </button>
+          `;
+        }
+
         item.innerHTML = `
           <div class="room-info">
             <span class="room-title">${room.title}</span>
             <span class="room-meta">생성일: ${time}</span>
           </div>
-          <button class="btn-primary" style="padding: 8px 20px; border:none; border-radius:12px; font-size:13px; font-weight:800; background:var(--jeju-orange); color:white; box-shadow: 0 4px 10px rgba(255, 80, 0, 0.3);">입장</button>
+          <div class="room-actions">
+            <button class="btn-primary" style="padding: 8px 20px; border:none; border-radius:12px; font-size:13px; font-weight:800; background:var(--jeju-orange); color:white; box-shadow: 0 4px 10px rgba(255, 80, 0, 0.3);">입장</button>
+            ${deleteBtn}
+          </div>
         `;
         item.onclick = () => joinChatRoom(room.id, room.title);
         roomListEl.appendChild(item);
@@ -406,6 +419,19 @@ function loadChatRooms() {
       console.error("Firestore Listen Error:", error);
       roomListEl.innerHTML = `<div style="text-align: center; color: #FF3B30; padding: 20px; font-size:12px;">권한 또는 색인 오류가 발생했습니다.<br>${error.message}</div>`;
     });
+}
+
+async function deleteChatRoom(roomId) {
+  if (!confirm("정말로 이 방을 삭제하시겠습니까? 관련 메시지도 모두 삭제될 수 있습니다.")) return;
+  
+  try {
+    // Note: In a production app, we should also delete subcollections (messages, participants)
+    // but for this prototype, deleting the room doc is sufficient to hide it.
+    await db.collection('chat_rooms').doc(roomId).delete();
+  } catch (e) {
+    console.error("방 삭제 실패:", e);
+    alert("방 삭제 권한이 없거나 오류가 발생했습니다.");
+  }
 }
 
 async function createNewChatRoom() {
@@ -424,7 +450,9 @@ async function createNewChatRoom() {
   }
 }
 
-function joinChatRoom(roomId, roomTitle) {
+let participantUnsubscribe = null;
+
+async function joinChatRoom(roomId, roomTitle) {
   // Validate profile
   chatState.name = document.getElementById('chat-user-name').value.trim();
   
@@ -440,21 +468,82 @@ function joinChatRoom(roomId, roomTitle) {
   
   currentChatRoomId = roomId;
   
+  // Register participant
+  if (fbReady) {
+    try {
+      await db.collection('chat_rooms').doc(roomId).collection('participants').doc(chatState.name).set({
+        name: chatState.name,
+        group: chatState.group,
+        isAdmin: chatState.isAdmin,
+        joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    } catch (e) { console.error("참여자 등록 실패:", e); }
+  }
+
   hideAllScreens();
   document.getElementById('screen-chat').classList.add('active');
   document.getElementById('chat-room-title').innerHTML = `<i class="ph-fill ph-chats-circle"></i> ${roomTitle}`;
   
   initChatRoom();
+  initParticipantListener();
 }
 
-function leaveChatRoom() {
-  if (chatUnsubscribe) {
-    chatUnsubscribe();
-    chatUnsubscribe = null;
+async function leaveChatRoom() {
+  if (fbReady && currentChatRoomId && chatState.name) {
+    try {
+      await db.collection('chat_rooms').doc(currentChatRoomId).collection('participants').doc(chatState.name).delete();
+    } catch (e) { console.error("참여자 제거 실패:", e); }
   }
+
+  if (chatUnsubscribe) { chatUnsubscribe(); chatUnsubscribe = null; }
+  if (participantUnsubscribe) { participantUnsubscribe(); participantUnsubscribe = null; }
+  
   currentChatRoomId = null;
   hideAllScreens();
   document.getElementById('screen-chat-lobby').classList.add('active');
+  document.getElementById('chat-participants-modal').classList.remove('active');
+}
+
+function initParticipantListener() {
+  if (!currentChatRoomId || !fbReady) return;
+  
+  participantUnsubscribe = db.collection('chat_rooms').doc(currentChatRoomId).collection('participants')
+    .onSnapshot(snapshot => {
+      const participants = [];
+      snapshot.forEach(doc => participants.push(doc.data()));
+      updateParticipantUI(participants);
+    });
+}
+
+function updateParticipantUI(participants) {
+  const badge = document.getElementById('participant-count-badge');
+  const modalCount = document.getElementById('modal-participant-count');
+  const listEl = document.getElementById('participants-list');
+  
+  const count = participants.length;
+  badge.textContent = count;
+  modalCount.textContent = count;
+  
+  listEl.innerHTML = participants.map(p => {
+    const gColor = chatState.groupColors[p.group] || '#71717A';
+    const groupLabel = p.isAdmin ? '👑 관리팀' : `${p.group}조`;
+    const nameLabel = p.isAdmin ? '관리자' : p.name;
+    
+    return `
+      <div class="participant-item">
+        <div class="participant-dot" style="--g-color: ${p.isAdmin ? '#FFCC00' : gColor};"></div>
+        <div class="participant-info">
+          <div class="participant-name">${nameLabel}</div>
+          <div class="participant-group-label">${groupLabel}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function toggleParticipantList() {
+  const modal = document.getElementById('chat-participants-modal');
+  modal.classList.toggle('active');
 }
 
 function initChatRoom() {
@@ -484,7 +573,7 @@ function initChatRoom() {
 
 function renderEnhancedChatMessage(data) {
   const chatMessages = document.getElementById('chat-messages');
-  // Simple check for 'me' based on name
+  // Admin message check: either data.isAdmin is true OR sender name is "관리자"
   const isMe = data.sender === chatState.name;
   
   const msgWrapper = document.createElement('div');
@@ -498,11 +587,11 @@ function renderEnhancedChatMessage(data) {
   
   if (data.isAdmin) {
     avatarHtml = `<div class="chat-avatar admin-avatar">관</div>`;
-    senderHtml = `<div class="chat-message-sender admin-sender"><i class="ph-fill ph-crown"></i> ${data.sender}</div>`;
+    senderHtml = `<div class="chat-message-sender admin-sender"><i class="ph-fill ph-crown"></i> 관리자</div>`;
   } else {
     const gColor = chatState.groupColors[data.group] || '#71717A';
     avatarHtml = `<div class="chat-avatar" style="--g-color: ${gColor};">${data.group}조</div>`;
-    senderHtml = `<div class="chat-message-sender">${data.sender} <span style="font-size:10px; opacity:0.6;">(${data.group}조)</span></div>`;
+    senderHtml = `<div class="chat-message-sender">${data.group}조: ${data.sender}</div>`;
   }
   
   msgWrapper.innerHTML = `

@@ -391,7 +391,11 @@
         </button>
       </div>
       <div class="header-center" id="chat-room-title"><i class="ph-fill ph-chats-circle"></i> Chat Room</div>
-      <div class="header-right">
+      <div class="header-right" style="display: flex; gap: 8px;">
+        <button class="btn-icon" onclick="toggleParticipantList()" style="position: relative;">
+          <i class="ph-bold ph-users-three"></i>
+          <span id="participant-count-badge" class="participant-badge">0</span>
+        </button>
         <button class="btn-icon" onclick="goHome()">
           <i class="ph ph-house"></i>
         </button>
@@ -408,6 +412,19 @@
         <button class="btn-send" onclick="sendChatMessage()">
           <i class="ph-fill ph-paper-plane-right"></i>
         </button>
+      </div>
+    </div>
+
+    <!-- Participant List Modal (Inside Screen) -->
+    <div id="chat-participants-modal" class="chat-participants-overlay">
+      <div class="participants-card">
+        <div class="participants-header">
+          <h3>참여자 명단 (<span id="modal-participant-count">0</span>명)</h3>
+          <button class="btn-icon" onclick="toggleParticipantList()"><i class="ph ph-x"></i></button>
+        </div>
+        <div id="participants-list" class="participants-list">
+          <!-- Participant items will be rendered here -->
+        </div>
       </div>
     </div>
   </div>

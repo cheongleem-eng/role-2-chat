@@ -1180,3 +1180,147 @@ body::before {
   font-size: 16px;
 }
 
+
+/* ============================================================
+   ENHANCED CHAT FEATURES (MODAL & BADGES)
+   ============================================================ */
+
+.participant-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background: #FF3B30;
+  color: white;
+  font-size: 9px;
+  font-weight: 800;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--jeju-navy);
+  padding: 0 2px;
+}
+
+.chat-participants-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 100;
+  display: none; /* Controlled via JS */
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.chat-participants-overlay.active {
+  display: flex;
+}
+
+.participants-card {
+  width: 100%;
+  max-width: 320px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  animation: modalSlideUp 0.3s ease-out;
+}
+
+@keyframes modalSlideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.participants-header {
+  padding: 18px 20px;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.participants-header h3 {
+  color: white;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.participants-list {
+  max-height: 350px;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.participant-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  transition: background 0.2s;
+}
+
+.participant-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.participant-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--g-color, #ccc);
+  box-shadow: 0 0 8px var(--g-color);
+}
+
+.participant-info {
+  flex: 1;
+}
+
+.participant-name {
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.participant-group-label {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Admin Delete Button in Lobby */
+.btn-delete-room {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(255, 59, 48, 0.1);
+  border: 1px solid rgba(255, 59, 48, 0.2);
+  color: #FF3B30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-left: 8px;
+}
+
+.btn-delete-room:active {
+  transform: scale(0.9);
+  background: #FF3B30;
+  color: white;
+}
+
+.room-actions {
+  display: flex;
+  align-items: center;
+}
