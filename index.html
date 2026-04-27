@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>제주항공 비상훈련 롤플레잉</title>
-  <link rel="stylesheet" href="style.css?v=1.8" />
+  <link rel="stylesheet" href="style.css?v=1.9" />
   <!-- 🔥 Firebase SDK (compat version — Firebase Studio 호환) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -12,6 +12,16 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <!-- Phosphor Icons -->
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <style>
+    /* 잠금 화면 활성화 시 브라우저 기본 제스처 차단 */
+    body.lock-active {
+      touch-action: none;
+      overflow: hidden;
+      position: fixed;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
 </head>
 <body class="lock-active">
 
@@ -183,22 +193,22 @@
         </div>
       </div>
       
-      <!-- End Training Button -->
-      <div style="padding: 16px;">
-        <button class="btn-end-training" onclick="confirmEndTraining()">
-          <div class="btn-end-inner">
-            <i class="ph-fill ph-check-circle"></i>
-            <span>모든 훈련 종료 및 결과 보기</span>
-          </div>
-        </button>
+      <!-- Phase Navigation buttons moved inside scroll area -->
+      <div class="phase-nav-buttons">
+        <button class="btn-secondary" id="btn-prev" onclick="changePhase(-1)"><i class="ph-bold ph-caret-left"></i> 이전</button>
+        <span class="phase-indicator" id="phase-indicator"></span>
+        <button class="btn-secondary" id="btn-next" onclick="changePhase(1)">다음 <i class="ph-bold ph-caret-right"></i></button>
       </div>
     </div>
 
-    <!-- Navigation buttons fixed at bottom -->
+    <!-- Fixed Bottom Navigation (Swapped with End Training) -->
     <div class="bottom-nav">
-      <button class="btn-secondary" id="btn-prev" onclick="changePhase(-1)"><i class="ph-bold ph-caret-left"></i> 이전</button>
-      <span class="phase-indicator" id="phase-indicator"></span>
-      <button class="btn-secondary" id="btn-next" onclick="changePhase(1)">다음 <i class="ph-bold ph-caret-right"></i></button>
+      <button class="btn-end-training" onclick="confirmEndTraining()">
+        <div class="btn-end-inner">
+          <i class="ph-fill ph-check-circle"></i>
+          <span>모든 훈련 종료 및 결과 보기</span>
+        </div>
+      </button>
     </div>
   </div>
 
@@ -300,7 +310,7 @@
     </div>
   </div>
 
-  <script src="main.js?v=1.8"></script>
-  <script src="app.js?v=1.8"></script>
+  <script src="main.js?v=1.9"></script>
+  <script src="app.js?v=1.9"></script>
 </body>
 </html>
